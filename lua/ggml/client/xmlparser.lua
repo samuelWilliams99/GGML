@@ -1,0 +1,69 @@
+GGML.NO_VALUE = -1
+
+local function parseargs(s)
+    local arg = {}
+    local ni1, ni2, key1, key2, j2, q, value
+    local i, j = 1, 1
+    while true do
+        ni1, j1, key1, q, value = string.find(s, "(%$?[%-%w]+)%s?=%s?([\"'])(.-)%2", i)
+        ni2, j2, key2 = string.find(s, "(%$?[%-%w]+)", i)
+        if not ni1 and not ni2 then break end
+
+        if ni1 and not ni2 then
+            i = j1 + 1
+            table.insert(arg, {key=key1, value=value})
+        elseif (ni2 and not ni1) or ni2 < ni1 then
+            i = j2 + 1 
+            table.insert(arg, {key=key2, value=GGML.NO_VALUE})
+        else
+            i = j1 + 1
+            table.insert(arg, {key=key1, value=value})
+        end
+    end
+    return arg
+end
+        
+function GGML.parseXML(s)
+    if not s then return false, "Unable to read XML" end
+
+    s = string.gsub(s, "<!%-%-.-%-%->", "")
+
+    local stack = {}
+    local top = {}
+    table.insert(stack, top)
+    local ni,c,tag,xarg, empty
+    local i, j = 1, 1
+    while true do
+        ni,j,c,tag,xarg, empty = string.find(s, "<(%/?)([%w:]+)(.-)(%/?)>", i)
+        if not ni then break end
+        local text = string.sub(s, i, ni-1)
+        if not string.find(text, "^%s*$") then
+            table.insert(top, text)
+        end
+        if empty == "/" then  -- empty element tag
+            table.insert(top, {tag=tag, args=parseargs(xarg), empty=1})
+        elseif c == "" then   -- start tag
+            top = {tag=tag, args=parseargs(xarg)}
+            table.insert(stack, top)   -- new level
+        else  -- end tag
+            local toclose = table.remove(stack)  -- remove top
+            top = stack[#stack]
+            if #stack < 1 then
+                return false, "No open tag to close with "..tag
+            end
+            if toclose.tag ~= tag then
+                return false, "Unable to close "..toclose.tag.." with "..tag
+            end
+            table.insert(top, toclose)
+        end
+        i = j+1
+    end
+    local text = string.sub(s, i)
+    if not string.find(text, "^%s*$") then
+        table.insert(stack[#stack], text)
+    end
+    if #stack > 1 then
+        return false, "Unclosed "..stack[#stack].tag
+    end
+    return true, stack[1]
+end
