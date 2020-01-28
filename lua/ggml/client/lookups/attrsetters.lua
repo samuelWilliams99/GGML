@@ -30,6 +30,8 @@ GGML.ATTR_SETTERS = {
 					d.italic = true
 				elseif v == "strikeout" or v == "strike-out" or v == "strikethrough" or v == "strike-through" then
 					d.strikeout = true
+				elseif v == "bold" then
+					d.weight = 800
 				end
 			end
 			GGML.AdjustFont(self, d)
