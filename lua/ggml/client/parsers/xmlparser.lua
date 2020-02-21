@@ -41,20 +41,29 @@ function GGML.parseXML(s)
             table.insert(top, text)
         end
         if empty == "/" then  -- empty element tag
-            table.insert(top, {tag=tag, args=parseargs(xarg), empty=1})
+            table.insert(top, {tag=tag, args=parseargs(xarg), empty=true})
         elseif c == "" then   -- start tag
             top = {tag=tag, args=parseargs(xarg)}
             table.insert(stack, top)   -- new level
         else  -- end tag
-            local toclose = table.remove(stack)  -- remove top
-            top = stack[#stack]
-            if #stack < 1 then
-                return false, "No open tag to close with "..tag
+            while true do
+                local toclose = table.remove(stack)  -- remove top
+                top = stack[#stack]
+                if #stack < 1 then
+                    return false, "No open tag to close with " .. tag
+                end
+                local canSelfClose = GGML.TAG_SELF_CLOSE[GGML.FindClassName(toclose.tag)] or false
+                if toclose.tag ~= tag then
+                    if not canSelfClose then
+                        return false, "Unable to close " .. toclose.tag .. " with " .. tag
+                    else
+                        table.insert(top, toclose)
+                    end
+                else
+                    table.insert(top, toclose)
+                    break
+                end
             end
-            if toclose.tag ~= tag then
-                return false, "Unable to close "..toclose.tag.." with "..tag
-            end
-            table.insert(top, toclose)
         end
         i = j+1
     end

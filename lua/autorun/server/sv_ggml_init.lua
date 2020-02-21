@@ -1,11 +1,13 @@
-AddCSLuaFile("ggml/client/base.lua")
-AddCSLuaFile("ggml/client/context.lua")
-AddCSLuaFile("ggml/client/xmlparser.lua")
-AddCSLuaFile("ggml/client/helper.lua")
-AddCSLuaFile("ggml/client/fontmanager.lua")
-AddCSLuaFile("ggml/client/lookups/tagaliases.lua")
-AddCSLuaFile("ggml/client/lookups/attraliases.lua")
-AddCSLuaFile("ggml/client/lookups/attrsetters.lua")
-AddCSLuaFile("ggml/client/lookups/percentfuncs.lua")
-AddCSLuaFile("ggml/client/example/example.lua")
-AddCSLuaFile("ggml/client/example/example.xml.lua")
+function addFiles(dir)
+	local files, dirs = file.Find(dir .. "/*", "LUA")
+	if not files then return end
+	for k, v in pairs(files) do
+		if string.match(v, "^.+%.lua$") then
+			AddCSLuaFile(dir .. "/" .. v)
+		end
+	end
+	for k, v in pairs(dirs) do
+		addFiles(dir .. "/" .. v)
+	end
+end
+addFiles("ggml/client")

@@ -40,10 +40,18 @@ function GGML.fontManager.GetFontSetter(attr)
 	end
 end
 
+function GGML.fontManager.GetFontData(elem)
+	if elem._GGMLUsingFont then
+		return GGML.fontManager.existingFonts[elem:GetFont()]
+	else
+		return GGML.fontManager.defaultFont
+	end
+end
+
 function GGML.AdjustFont(elem, data)
 	local fontData
 	local fontName
-	if elem.UsingGGMLFont then
+	if elem._GGMLUsingFont then
 		elem.SetFont = elem.oldSetFont
 		elem.OnRemove = elem.oldOnRemove
 		fontName = elem:GetFont()
@@ -53,7 +61,7 @@ function GGML.AdjustFont(elem, data)
 		fontData = table.Copy(GGML.fontManager.defaultFont)
 	end
 
-	elem.UsingGGMLFont = true
+	elem._GGMLUsingFont = true
 
 	table.Merge(fontData, data)
 	GGML.fontManager.existingFonts[fontName] = fontData
@@ -67,7 +75,7 @@ function GGML.AdjustFont(elem, data)
 		table.insert(GGML.fontManager.fontPool, self:GetFont())
 		self.SetFont = self.oldSetFont
 		self.OnRemove = self.oldOnRemove
-		self.UsingGGMLFont = false
+		self._GGMLUsingFont = false
 		self:SetFont(font)
 	end
 	elem.oldOnRemove = elem.OnRemove or function() end
@@ -75,7 +83,7 @@ function GGML.AdjustFont(elem, data)
 		table.insert(GGML.fontManager.fontPool, self:GetFont())
 		self.SetFont = self.oldSetFont
 		self.OnRemove = self.oldOnRemove
-		self.UsingGGMLFont = false
+		self._GGMLUsingFont = false
 		self:OnRemove()
 	end
 end
