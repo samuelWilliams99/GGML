@@ -1,9 +1,9 @@
 GGML.imageCache = GGML.imageCache or {}
 
 function GGML.clearImageCache()
-	GGML.imageCache = {}
+    GGML.imageCache = {}
 end
 
-function GGML.loadImage(url, cb)
-	
+function GGML.loadImage( url, cb )
+
 end

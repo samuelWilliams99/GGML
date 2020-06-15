@@ -2,244 +2,244 @@ GGML.css = {}
 local css = GGML.css
 
 css.attributeOpLookup = {
-	["="]  = helper.eq,
-	["~="] = function(a, b)
-		return asBool(string.find(" " .. a .. " ", "%s" .. string.PatternSafe(b) .. "%s"))
-	end,
-	["|="] = function(a, b)
-		return a == b or string.sub(a, 1, #b + 1) == b .. "-"
-	end,
-	["^="] = function(a, b)
-		return string.sub(a, 1, #b) == b
-	end,
-	["$="] = function(a, b)
-		return string.sub(a, #a - #b + 1) == b
-	end,
-	["*="] = function(a, b)
-		return asBool(string.find(a, b, 1, true))
-	end,
-	["CLASSCHECK"] = function(a, classes)
-		return table.all(table.map(classes, function(class)
-			return css.attributeOpLookup["~="](a, class)
-		end))
-	end,
-	["NOTNIL"] = function(a)
-		return a ~= nil
-	end
+    ["="] = helper.eq,
+    ["~="] = function( a, b )
+        return asBool( string.find( " " .. a .. " ", "%s" .. string.PatternSafe( b ) .. "%s" ) )
+    end,
+    ["|="] = function( a, b )
+        return a == b or string.sub( a, 1, #b + 1 ) == b .. "-"
+    end,
+    ["^="] = function( a, b )
+        return string.sub( a, 1, #b ) == b
+    end,
+    ["$="] = function( a, b )
+        return string.sub( a, #a - #b + 1 ) == b
+    end,
+    ["*="] = function( a, b )
+        return asBool( string.find( a, b, 1, true ) )
+    end,
+    ["CLASSCHECK"] = function( a, classes )
+        return table.all( table.map( classes, function( class )
+            return css.attributeOpLookup["~="]( a, class )
+        end ) )
+    end,
+    ["NOTNIL"] = function( a )
+        return a ~= nil
+    end
 }
 
 css.contextFreeFunctions = {
-    hsl = function(args) 
-        table.insert(args, {{num=1, type="Value"}})
-        return css.contextFreeFunctions.hsla(args)
+    hsl = function( args )
+        table.insert( args, { { num = 1, type = "Value" } } )
+        return css.contextFreeFunctions.hsla( args )
     end,
-    hsla = function(args)
-        p(args)
+    hsla = function( args )
+        p( args )
         local valid = #args == 4 and
             #args[1] == 1 and args[1][1].type == "Value" and args[1][1].num >= 0 and args[1][1].num <= 360 and
             #args[2] == 1 and args[2][1].type == "UnitValue" and args[2][1].unit == "%" and
             #args[3] == 1 and args[3][1].type == "UnitValue" and args[3][1].unit == "%" and
             #args[4] == 1 and args[4][1].type == "Value" and args[4][1].num >= 0 and args[4][1].num <= 1
 
-        if not valid then error("Invalid arguments to hsla()") end
+        if not valid then error( "Invalid arguments to hsla()" ) end
 
         local h = args[1][1].num
         local s = args[2][1].num
         local l = args[3][1].num
-        local col = HSLToColor(h, s/100, l/100)
+        local col = HSLToColor( h, s / 100, l / 100 )
 
-        args[1][1] = {num=col.r, type="Value"}
-        args[2][1] = {num=col.g, type="Value"}
-        args[3][1] = {num=col.b, type="Value"}
+        args[1][1] = { num = col.r, type = "Value" }
+        args[2][1] = { num = col.g, type = "Value" }
+        args[3][1] = { num = col.b, type = "Value" }
         args[4][1].num = args[4][1].num * 255
 
-        return css.contextFreeFunctions.rgba(args)
+        return css.contextFreeFunctions.rgba( args )
     end,
-    rgb = function(args)
-        table.insert(args, {{num=255, type="Value"}})
-        return css.contextFreeFunctions.rgba(args)
+    rgb = function( args )
+        table.insert( args, { { num = 255, type = "Value" } } )
+        return css.contextFreeFunctions.rgba( args )
     end,
-    rgba = function(args)
-        local valid = #args == 4 and table.reduce(args, function(a, b)
+    rgba = function( args )
+        local valid = #args == 4 and table.reduce( args, function( a, b )
             if not a then return false end
             return #b == 1 and b[1].type == "Value" and b[1].num >= 0 and b[1].num <= 255
-        end, true)
-        if not valid then error("Invalid arguments to rgb()") end
+        end, true )
+        if not valid then error( "Invalid arguments to rgb()" ) end
         local r = args[1][1].num
         local g = args[2][1].num
         local b = args[3][1].num
         local a = args[4][1].num
-        return {text=string.format("#%02X%02X%02X%02X", r, g, b, a), type="String"}
+        return { text = string.format( "#%02X%02X%02X%02X", r, g, b, a ), type = "String" }
     end,
-    var = function(args)
+    var = function( args )
         local valid = #args == 1 and #args[1] == 1 and args[1][1].type == "String"
-        if not valid then error("Invalid argument to var()") end
+        if not valid then error( "Invalid argument to var()" ) end
 
         -- Lookup in root tag, can't really be done here without more info :(
 
-        return {text="VAR", type="String"}
+        return { text = "VAR", type = "String" }
     end
 }
 
-local function parseSelectorExp(str)
-	if #str == 0 then error("Malformed selector, selectors cannot be empty") end
-	local entry = {attributes = {}}
-	local brPos = string.find(str, "[", 1, true)
-	local pre = str
-	local post
-	if brPos then
-		pre = string.sub(str, 1, brPos-1)
-		post = string.sub(str, brPos)
-	end
-	local s, e = string.find(pre, "^[%w%-_%*]+")
-	if s then
-		entry.tag = string.sub(pre, s, e)
-		if string.find(entry.tag, "*", 1, true) and entry.tag ~= "*" then
-			error("Malformed selector, * can only be used alone")
-		end
-		pre = string.sub(pre, e+1)
-	else
-		entry.tag = "*"
-	end
+local function parseSelectorExp( str )
+    if #str == 0 then error( "Malformed selector, selectors cannot be empty" ) end
+    local entry = { attributes = {} }
+    local brPos = string.find( str, "[", 1, true )
+    local pre = str
+    local post
+    if brPos then
+        pre = string.sub( str, 1, brPos - 1 )
+        post = string.sub( str, brPos )
+    end
+    local s, e = string.find( pre, "^[%w%-_%*]+" )
+    if s then
+        entry.tag = string.sub( pre, s, e )
+        if string.find( entry.tag, "*", 1, true ) and entry.tag ~= "*" then
+            error( "Malformed selector, * can only be used alone" )
+        end
+        pre = string.sub( pre, e + 1 )
+    else
+        entry.tag = "*"
+    end
 
-	local classList = {}
-	local noClasses = string.gsub(pre, "%.([%w%-_]+)", function(class)
-		table.insert(classList, class)
-		return ""
-	end)
-	if #classList > 0 then
-		entry.attributes.class = {
-			func = "CLASSCHECK", 
-			val = classList
-		}
-	end
+    local classList = {}
+    local noClasses = string.gsub( pre, "%.([%w%-_]+)", function( class )
+        table.insert( classList, class )
+        return ""
+    end )
+    if #classList > 0 then
+        entry.attributes.class = {
+            func = "CLASSCHECK",
+            val = classList
+        }
+    end
 
-	local id
-	local nothing = string.gsub(noClasses, "#([%w%-_]+)", function(_id)
-		if id then
-			error("Malformed selector, cannot define mutiple ID matches")
-		end
-		id = _id
-		return ""
-	end)
-	if id then
-		entry.attributes.id = {
-			func = "=", 
-			val = id
-		}
-	end
+    local id
+    local nothing = string.gsub( noClasses, "#([%w%-_]+)", function( _id )
+        if id then
+            error( "Malformed selector, cannot define mutiple ID matches" )
+        end
+        id = _id
+        return ""
+    end )
+    if id then
+        entry.attributes.id = {
+            func = "=",
+            val = id
+        }
+    end
 
-	-- At this point, nothing should be an empty string, all cases matched
-	-- If not, the label was malformed
-	if #nothing ~= 0 then
-		error("Malformed selector, failed to parse \"" .. nothing .. "\"")
-	end
+    -- At this point, nothing should be an empty string, all cases matched
+    -- If not, the label was malformed
+    if #nothing ~= 0 then
+        error( "Malformed selector, failed to parse \"" .. nothing .. "\"" )
+    end
 
-	if post then
-		local noAssigns = string.gsub(post, "%[([%w%-_]+)%]", function(attr)
-			entry.attributes[attr] = {
-				func = "NOTNIL"
-			}
-			return ""
-		end)
+    if post then
+        local noAssigns = string.gsub( post, "%[([%w%-_]+)%]", function( attr )
+            entry.attributes[attr] = {
+                func = "NOTNIL"
+            }
+            return ""
+        end )
 
-		local nothing = string.gsub(noAssigns, "%[%s*([%w%-_]+)%s*([~|%^%$%*]?=)%s*([\"']?)([^%]]+)%3%s*%]", function(attr, op, _, val)
-			entry.attributes[attr] = {
-				func = op, 
-				val = val
-			}
-			return ""
-		end)
-		-- At this point, nothing should be an empty string, all cases matched
-		-- If not, the label was malformed
-		if #nothing ~= 0 then
-			error("Malformed selector, failed to parse attributes \"" .. nothing .. "\"")
-		end
-	end
-	return entry
+        local nothing = string.gsub( noAssigns, "%[%s*([%w%-_]+)%s*([~|%^%$%*]?=)%s*([\"']?)([^%]]+)%3%s*%]", function( attr, op, _, val )
+            entry.attributes[attr] = {
+                func = op,
+                val = val
+            }
+            return ""
+        end )
+        -- At this point, nothing should be an empty string, all cases matched
+        -- If not, the label was malformed
+        if #nothing ~= 0 then
+            error( "Malformed selector, failed to parse attributes \"" .. nothing .. "\"" )
+        end
+    end
+    return entry
 end
 
-local function parseLabels(str)
-	str = string.Trim(str)
-	local labels = string.Explode("[%s\n]*,[%s\n]*", str, true)
-	local out = {}
-	for _, label in pairs(labels) do
-		local selectors = helper.splitStringSpecial(label, {" ", ">", "+", "~"}, {
-			["["] = "]",
-			["\""] = "\"",
-			["'"] = "'",
-			["("] = ")"
-		})
+local function parseLabels( str )
+    str = string.Trim( str )
+    local labels = string.Explode( "[%s\n]*,[%s\n]*", str, true )
+    local out = {}
+    for _, label in pairs( labels ) do
+        local selectors = helper.splitStringSpecial( label, { " ", ">", "+", "~" }, {
+            ["["] = "]",
+            ["\""] = "\"",
+            ["'"] = "'",
+            ["("] = ")"
+        } )
 
-		local selectorOut = {}
-		for i = #selectors, 1, -1 do
-			local selector = selectors[i]
-			local op = selector.split or ""
-			op = string.Trim(op)
-			if #op == 0 then op = " " end
-			local entry = parseSelectorExp(selector.str)
+        local selectorOut = {}
+        for i = #selectors, 1, -1 do
+            local selector = selectors[i]
+            local op = selector.split or ""
+            op = string.Trim( op )
+            if #op == 0 then op = " " end
+            local entry = parseSelectorExp( selector.str )
 
-			if op == " " then
-				entry.immediate = false
-			elseif op == ">" then
-				entry.immediate = true
-			else
-				error("Operator " .. op .. " not yet supported :(")
-			end
+            if op == " " then
+                entry.immediate = false
+            elseif op == ">" then
+                entry.immediate = true
+            else
+                error( "Operator " .. op .. " not yet supported :(" )
+            end
 
-			table.insert(selectorOut, entry)
+            table.insert( selectorOut, entry )
 
-		end
+        end
 
-		table.insert(out, selectorOut)
-	end
-	return out
+        table.insert( out, selectorOut )
+    end
+    return out
 end
 
-local function attemptResolveFunction(data)
+local function attemptResolveFunction( data )
     local fn = data.funcName
     if css.contextFreeFunctions[fn] then
-        return css.contextFreeFunctions[fn](data.args)
+        return css.contextFreeFunctions[fn]( data.args )
     else
         return data
     end
 end
 
-local function parseAttributeValue(value)
-    local valueSplit = helper.splitStringSpecial(value, {" ", ","}, {
+local function parseAttributeValue( value )
+    local valueSplit = helper.splitStringSpecial( value, { " ", "," }, {
         ["\""] = "\"",
         ["'"] = "'",
         ["("] = ")"
-    })
-    local out = {{}}
-    for k, singleData in ipairs(valueSplit) do
-        local str = string.Trim(singleData.str)
+    } )
+    local out = { {} }
+    for k, singleData in ipairs( valueSplit ) do
+        local str = string.Trim( singleData.str )
         if str == "" then continue end
-        local sep = string.Trim(singleData.split or "")
+        local sep = string.Trim( singleData.split or "" )
         local cur
         -- Is it a function call?
-        local s, _, funcName, args = string.find(str, "^([%w%-]+)%(([^%)]+)%)$")
+        local s, _, funcName, args = string.find( str, "^([%w%-]+)%(([^%)]+)%)$" )
         if s then
             -- Yes
             cur = {
                 funcName = funcName,
-                args = parseAttributeValue(args),
+                args = parseAttributeValue( args ),
                 type = "FunctionCall"
             }
 
-            cur = attemptResolveFunction(cur)
+            cur = attemptResolveFunction( cur )
         end
 
         if not cur then
             -- Is it a value with unit (10% or 30px)
-            local s, _, num, unit = string.find(str, "^([%d%.]+)([%a%%]+)$")
+            local s, _, num, unit = string.find( str, "^([%d%.]+)([%a%%]+)$" )
             if s then
                 -- Maybe, is the num ok?
-                num = tonumber(num)
+                num = tonumber( num )
                 if num then
                     -- Yes
-                    if unit == "%" and (num < 0 or num > 100) then
-                        error("% value out of range 0-100")
+                    if unit == "%" and ( num < 0 or num > 100 ) then
+                        error( "% value out of range 0-100" )
                     end
                     cur = {
                         num = num,
@@ -251,7 +251,7 @@ local function parseAttributeValue(value)
         end
 
         if not cur then
-            local num = tonumber(str)
+            local num = tonumber( str )
 
             if num then
                 cur = {
@@ -266,65 +266,65 @@ local function parseAttributeValue(value)
             type = "String"
         }
 
-        table.insert(out[#out], cur)
+        table.insert( out[#out], cur )
 
         if sep == "," then
-            table.insert(out, {})
+            table.insert( out, {} )
         end
     end
     return out
 end
 
-local function parseAttributes(attrs)
+local function parseAttributes( attrs )
     local out = {}
-    local attrsSplit = helper.splitStringSpecial(attrs, {";"}, {
+    local attrsSplit = helper.splitStringSpecial( attrs, { ";" }, {
         ["\""] = "\"",
         ["'"] = "'",
         ["("] = ")"
-    })
-    table.mapSelf(attrsSplit, function(x) return string.Trim(x.str) end)
+    } )
+    table.mapSelf( attrsSplit, function( x ) return string.Trim( x.str ) end )
 
-    for k, pair in ipairs(attrsSplit) do
+    for k, pair in ipairs( attrsSplit ) do
         if pair == "" then continue end
-        local s, _, property, value = string.find(pair, "^([%w_%-]+)%s*:%s*(.+)")
+        local s, _, property, value = string.find( pair, "^([%w_%-]+)%s*:%s*(.+)" )
         if not s then
-            error("Malformed css")
+            error( "Malformed css" )
         end
-        local valueTable = parseAttributeValue(value)
+        local valueTable = parseAttributeValue( value )
         out[property] = valueTable
     end
 
     return out
 end
 
-function GGML.parseCSS(str)
-	str = string.gsub(str, "/%*.-%*/", "")
+function GGML.parseCSS( str )
+    str = string.gsub( str, "/%*.-%*/", "" )
 
     local out = {}
 
-	local s, e, ne, labels, attributes
-	e = 0
-	while true do
-		s, ne, labelsStr, attributesStr = string.find(str, "[%s\n]*([%w%s,:%*%.#=~|%^%$]+){[%s/n]*([^}]+)[%s/n]*}[%s\n]*", e+1)
-		if not s then 
-			if e == #str then
-				break
-			else
-				return false, "Invalid format at " .. helper.errInfo(str, e)
-			end
-		end
-		if s ~= e + 1 then
-			return false, "Invalid format at " .. helper.errInfo(str, s)
-		end
-		e = ne
-		local labels = parseLabels(labelsStr)
-		local attributes = parseAttributes(attributesStr)
-		for k, v in pairs(labels) do
+    local s, e, ne, labels, attributes
+    e = 0
+    while true do
+        s, ne, labelsStr, attributesStr = string.find( str, "[%s\n]*([%w%s,:%*%.#=~|%^%$]+){[%s/n]*([^}]+)[%s/n]*}[%s\n]*", e + 1 )
+        if not s then
+            if e == #str then
+                break
+            else
+                return false, "Invalid format at " .. helper.errInfo( str, e )
+            end
+        end
+        if s ~= e + 1 then
+            return false, "Invalid format at " .. helper.errInfo( str, s )
+        end
+        e = ne
+        local labels = parseLabels( labelsStr )
+        local attributes = parseAttributes( attributesStr )
+        for k, v in pairs( labels ) do
             out[v] = attributes
         end
-	end
-    p(out)
-	return true, out
+    end
+    p( out )
+    return true, out
 end
 
 

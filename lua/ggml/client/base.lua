@@ -2,17 +2,17 @@ GGML = GGML or {}
 GGML.elements = GGML.elements or {}
 GGML.Loaded = false
 
-include("util/luacompat.lua")
-include("util/helper.lua")
-include("parsers/xmlparser.lua")
-include("parsers/cssparser.lua")
-include("context.lua")
-include("fontmanager.lua")
-include("paintmanager.lua")
-include("lookups/lookupincludes.lua")
-include("util/vguimod.lua")
-include("inflater/inflater.lua")
-include("example/example.lua")
+include( "util/luacompat.lua" )
+include( "util/helper.lua" )
+include( "parsers/xmlparser.lua" )
+include( "parsers/cssparser.lua" )
+include( "context.lua" )
+include( "fontmanager.lua" )
+include( "paintmanager.lua" )
+include( "lookups/lookupincludes.lua" )
+include( "util/vguimod.lua" )
+include( "inflater/inflater.lua" )
+include( "example/example.lua" )
 
 -- TO TEST
 -- Make PerformLayouts get removed when u set width, height, size, etc.
@@ -32,65 +32,64 @@ include("example/example.lua")
 -- seems underline and strikeout just dont work l o l
 
 
-function GGML.CreateView(name, context, data)
-    local success, xml = GGML.parseXML(data)
+function GGML.CreateView( name, context, data )
+    local success, xml = GGML.parseXML( data )
 
     if not success then
-        error("Invalid XML for GGML object \"" .. name .. "\": " .. xml)
+        error( "Invalid XML for GGML object \"" .. name .. "\": " .. xml )
     end
 
-    local rootKeys = table.GetKeys(xml)
+    local rootKeys = table.GetKeys( xml )
     if #rootKeys ~= 1 or rootKeys[1] ~= 1 then
-        error("Invalid XML for GGML object \"" .. name .. "\": Root must be singular")
+        error( "Invalid XML for GGML object \"" .. name .. "\": Root must be singular" )
     end
     local xmlRoot = xml[1]
 
-    table.Inherit(context, GGML.ContextBase)
+    table.Inherit( context, GGML.ContextBase )
 
     local contextInit = context.Init or function() end
 
     function context:Init()
         if self.PreInit then self:PreInit() end
 
-        self.xmlRoot = table.Copy(xmlRoot)
+        self.xmlRoot = table.Copy( xmlRoot )
 
         self.changeListeners = {}
         self.mtGetters = {}
         local err
-        local success = xpcall(GGML.Inflate, function( x ) err = x end, name, self.xmlRoot, self)
+        local success = xpcall( GGML.Inflate, function( x ) err = x end, name, self.xmlRoot, self )
 
-        if not success then 
+        if not success then
             self:Remove()
-            error(err)
+            error( err )
         end
 
-        table.insert(GGML.elements, self)
+        table.insert( GGML.elements, self )
 
         self.inflated = true
 
-        contextInit(self)
+        contextInit( self )
     end
 
-    local base = GGML.FindClassName(xmlRoot.tag)
+    local base = GGML.FindClassName( xmlRoot.tag )
 
-    vgui.Register(name, context, base)
+    vgui.Register( name, context, base )
 end
 
 concommand.Add( "ggml_reload", function()
-    include("ggml/client/base.lua")
+    include( "ggml/client/base.lua" )
 end )
 
 concommand.Add( "ggml_example", function()
     if GGML.Loaded then
-    	GGML.runExample()
+        GGML.runExample()
     else
-    	hook.Once("GGML_Loaded", GGML.runExample)
+        hook.Once( "GGML_Loaded", GGML.runExample )
     end
 end )
 
 concommand.Add( "ggml_remove_all", function()
-    for k, v in pairs(GGML.elements) do
-        if IsValid(v) then v:Remove() end
+    for k, v in pairs( GGML.elements ) do
+        if IsValid( v ) then v:Remove() end
     end
 end )
-
