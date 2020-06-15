@@ -12,7 +12,7 @@ For example (example.lua):
 ```
 local CONTEXT = {}
 
-function CONTEXT:buttonClick(elem)
+function CONTEXT:buttonClick( elem )
   self.testProperty = "Clicked!"
 end
 
@@ -21,7 +21,7 @@ function CONTEXT:PreInit()
 end
 
 function CONTEXT:Init()
-  self:FindElementById("testLabel"):SetTextColor(Color(255,0,0))
+  self:FindElementById( "testLabel" ):SetTextColor( Color( 255, 0, 0 ) )
 end
 ```
 
@@ -29,8 +29,8 @@ end
 This is a string containing the XML, it is preferred to store this in a separate file, so that you can use separate syntax highlighting for it.  
 For example (example.xml.lua):
 ```
-exampleXML = [[
-<Frame Width="50%" 
+return [[
+<Frame Width="50%"
        Height="50%"
        Title="Example frame"
        Center
@@ -42,8 +42,8 @@ exampleXML = [[
 ```
 
 ### Creating the element
-Lastly, simply call `GGML.CreateView("exampleView", CONTEXT, exampleXML)` to register a vgui element with the given name.
-You are then able to call `vgui.Create("exampleView")` to use this element.
+Lastly, simply call `GGML.CreateView( "exampleView", CONTEXT, include( "example.xml.lua" ) )` to register a vgui element with the given name.
+You are then able to call `vgui.Create( "exampleView" )` to use this element.
 
 ## XML syntax
 ### Tags
@@ -51,11 +51,11 @@ GGML will look for vgui elements named either your tag name, or `D[yourTagName]`
 There are some name aliases to give elements more obvious names, e.g. `DListView` can be created simply with `<List/>`
 ### Attributes Names
 - When GGML find an attribute name, it will look for setter functions by the name `Attribute` or `SetAttribute` and call them with the value  
-So the attribute `Wide="10"` will internally call `element:SetWide(10)`  
+So the attribute `Wide="10"` will internally call `element:SetWide( 10 )`  
   
 - Some attributes do not call the setter, but instead replace it, for example `DoClick`  
 So the attribute `DoClick="@myFunc"` will internally call `element.DoClick = context.myFunc` (More on value syntax below)  
-**Note, any functions will automatically be passed in the context and calling element as first 2 arguments, so it is recommended to define them as** `CONTEXT:myFunc(elem, ...)` **rather than** `CONTEXT.myFunc(context, elem, ...)`
+**Note, any functions will automatically be passed in the context and calling element as first 2 arguments, so it is recommended to define them as** `CONTEXT:myFunc( elem, ... )` **rather than** `CONTEXT.myFunc( context, elem, ... )`
   
 - You can force GGML to replace values by prefixing the attribute name with `$`  
 So the attribute `$myVar="10"` will internally call `element.myVar = 10`  
@@ -78,7 +78,7 @@ Also, non-value attributes prefixed with `$` will set that field to nil, e.g. `<
 - Prefixing a value with `^` will read it as a global variable (supporting dot notation), e.g.  
 `Dock="^TOP"`
 - Prefixing a value with `@` will read it as a member of the context, e.g.  
-`Text="@myString"` => `element:SetText(context.myString)`
+`Text="@myString"` => `element:SetText( context.myString )`
 - Prefixing a value with `@@` will bind the attribute to a property, e.g.  
 `Text="@@myProperty"`.  
 Setting `context.myProperty` will set the text on this value automatically.  
