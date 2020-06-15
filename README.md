@@ -1,4 +1,5 @@
 # GGML
+**This project is not feature complete, or tested. Use at own risk. (or preferably, don't)**  
 GMod Graphics Markup Language.  
 GGML is a VGUI Wrapper that add WPF like UI creation, including automated font creation/reuse, property binding, layouts, etc.
 
