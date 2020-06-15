@@ -1,4 +1,4 @@
-include("ggml/client/example/example.xml.lua")
+local exampleXML = include("ggml/client/example/example.xml.lua")
 
 local CONTEXT = {}
 

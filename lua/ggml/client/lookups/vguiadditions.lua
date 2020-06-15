@@ -91,7 +91,7 @@ GGML.VGUI_ADDITIONS.FIELDS = {
 				return y
 			end
 		},
-		BackgroundColor = {
+		GGMLBackgroundColor = {
 			Set = GGML.paintManager.GetPaintSetter("bgColor"),
 			Default = Color(0,0,0,0)
 		},

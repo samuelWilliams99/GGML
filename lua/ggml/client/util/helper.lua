@@ -26,6 +26,10 @@ function helper.lOr(a, b)
 	return a or b
 end
 
+function helper.lNot(x)
+	return not x
+end
+
 function helper.eq(a, b)
 	return a == b
 end
@@ -38,10 +42,6 @@ function helper.compose(a, b)
 	return function( ... ) 
 		return a(b(...))
 	end
-end
-
-function helper.lNot(x)
-	return not x
 end
 
 function helper.rep(x, n)

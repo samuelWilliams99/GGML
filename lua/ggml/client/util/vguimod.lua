@@ -175,10 +175,20 @@ timer.Create("GGML_Wait", 0.1, 0, function()
 		end
 	end
 
+	GGML.oldVGUICreate = GGML.oldVGUICreate or vgui.Create
+	vgui.Create = function( className, parent, ... )
+		if parent and parent.PreChildAdded then
+			parent = parent:PreChildAdded( className ) or parent
+		end
+		local panel = GGML.oldVGUICreate( className, parent, ... )
+		if parent and parent.PostChildAdded then
+			parent:PostChildAdded( panel )
+		end
+		return panel
+	end
+
 	print("[GGML] VGUIMOD Loaded")
 	GGML.Loaded = true
 	hook.Run("GGML_Loaded")
 end)
 
-local oldVGUICreate = vgui.Create
-vgui.Create = function(classname)
