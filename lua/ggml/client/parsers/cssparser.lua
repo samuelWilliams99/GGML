@@ -4,7 +4,7 @@ local css = GGML.css
 css.attributeOpLookup = {
     ["="] = helper.eq,
     ["~="] = function( a, b )
-        return asBool( string.find( " " .. a .. " ", "%s" .. string.PatternSafe( b ) .. "%s" ) )
+        return tobool( string.find( " " .. a .. " ", "%s" .. string.PatternSafe( b ) .. "%s" ) )
     end,
     ["|="] = function( a, b )
         return a == b or string.sub( a, 1, #b + 1 ) == b .. "-"
@@ -16,7 +16,7 @@ css.attributeOpLookup = {
         return string.sub( a, #a - #b + 1 ) == b
     end,
     ["*="] = function( a, b )
-        return asBool( string.find( a, b, 1, true ) )
+        return tobool( string.find( a, b, 1, true ) )
     end,
     ["CLASSCHECK"] = function( a, classes )
         return table.all( table.map( classes, function( class )
@@ -34,7 +34,7 @@ css.contextFreeFunctions = {
         return css.contextFreeFunctions.hsla( args )
     end,
     hsla = function( args )
-        p( args )
+        pp( args )
         local valid = #args == 4 and
             #args[1] == 1 and args[1][1].type == "Value" and args[1][1].num >= 0 and args[1][1].num <= 360 and
             #args[2] == 1 and args[2][1].type == "UnitValue" and args[2][1].unit == "%" and
@@ -323,7 +323,7 @@ function GGML.parseCSS( str )
             out[v] = attributes
         end
     end
-    p( out )
+    pp( out )
     return true, out
 end
 

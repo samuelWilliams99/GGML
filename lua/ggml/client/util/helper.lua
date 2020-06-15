@@ -123,10 +123,6 @@ function pack( ... )
     return { ... }
 end
 
-function asBool( x )
-    return x and true or false
-end
-
 function printA( ... )
     local d = { ... }
     if #d == 0 then
@@ -142,7 +138,7 @@ function printA( ... )
     end
 end
 
-p = printA
+pp = printA
 
 function helper.indexable( x )
     local s = xpcall( function() return x[1] end, function() end )
@@ -151,7 +147,7 @@ end
 
 local function idxValid( a, b )
     if not a then return false end
-    local valid = asBool( string.match( b, "^%a%w-$" ) )
+    local valid = tobool( string.match( b, "^%a%w-$" ) )
     return valid
 end
 

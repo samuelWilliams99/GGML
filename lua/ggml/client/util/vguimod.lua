@@ -44,7 +44,8 @@ local function addPerformLayout( element )
         self._GGMLOldPerformLayout( self )
     end
 end
-function makePercentable( element, fName, percentFunc )
+
+local function makePercentable( element, fName, percentFunc )
     if type( element ) == "string" then
         element = vgui.GetControlTable( element )
     end
