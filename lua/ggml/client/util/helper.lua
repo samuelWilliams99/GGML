@@ -108,6 +108,24 @@ end
 
 table.rep = table.Repeat
 
+function string.findFirst( s, ... )
+    local patterns = { ... }
+    local matchData
+    local matchIndex = -1
+
+    for idx, pattern in ipairs( patterns ) do
+        local data = { string.find( s, pattern ) }
+        if #data == 0 then continue end
+
+        if not matchData or data[1] < matchData[1] then
+            matchData = data
+            matchIndex = idx
+        end
+    end
+
+    return matchIndex, matchData
+end
+
 function helper.const( x )
     return function() return x end
 end

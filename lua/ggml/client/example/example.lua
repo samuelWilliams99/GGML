@@ -3,7 +3,7 @@ local exampleXML = include( "ggml/client/example/example.xml.lua" )
 local CONTEXT = {}
 
 function CONTEXT:buttonClick( elem )
-    self.test.property.thing = "bye"
+    print( self.test.property.thing )
     elem:SetFontSize( 10 )
     local elem = self:GetElementByID( "yote" )
     elem:SetBackgroundColor( Color( 255, 0, 0 ) )

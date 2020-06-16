@@ -1,10 +1,12 @@
 GGML.NO_VALUE = -1
 
+-- what on earth is going on here, patterns aren't always the best way
 local function parseargs( s )
     local arg = {}
     local ni1, ni2, key1, key2, j2, q, value
     local i, j = 1, 1
     while true do
+        -- perhaps string.matchFirst would be good here
         ni1, j1, key1, q, value = string.find( s, "(%$?[%-%w]+)%s?=%s?([\"'])(.-)%2", i )
         ni2, j2, key2 = string.find( s, "(%$?[%-%w]+)", i )
         if not ni1 and not ni2 then break end
@@ -23,9 +25,17 @@ local function parseargs( s )
     return arg
 end
 
-function GGML.parseXML( s )
-    if not s then return false, "Unable to read XML" end
+--[[ Current output structure
+{
+    [1] = firstChild,
+    [2] = secondChild,
+    tag = tagName,
+    empty = #self > 0,
+    args = parseargs( argstring )
+}
 
+]]
+function GGML.parseXML( s, name )
     s = string.gsub( s, "<!%-%-.-%-%->", "" )
 
     local stack = {}
@@ -52,7 +62,7 @@ function GGML.parseXML( s )
                 if #stack < 1 then
                     return false, "No open tag to close with " .. tag
                 end
-                local canSelfClose = GGML.TAG_SELF_CLOSE[GGML.FindClassName( toclose.tag )] or false
+                local canSelfClose = GGML.TAG_SELF_CLOSE[GGML.FindClassName( toclose.tag, name )] or false
                 if toclose.tag ~= tag then
                     if not canSelfClose then
                         return false, "Unable to close " .. toclose.tag .. " with " .. tag

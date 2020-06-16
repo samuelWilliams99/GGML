@@ -17,6 +17,7 @@ include( "example/example.lua" )
 -- TO TEST
 -- Make PerformLayouts get removed when u set width, height, size, etc.
 -- Change binding to support 2way, @<prop for property > field, @>prop for field > property, @= for 2way
+--     rewrite GGML.parseXML to handle > correctly (not end of tag if in quotes)
 -- add a lookup for selfclosing tags, like <br> -- test on labels
 
 -- TO DO
@@ -26,14 +27,16 @@ include( "example/example.lua" )
 
 -- Css like styling, class support, etc. this one is big -- we gettin there
 -- layouts :) -- same style as c#, override vgui.Create in vguimod to add a preAdd and postAdd function to panels
--- Selectable lookups, so I can have a html/css mode -- probably no point, just have all at once
 
 -- BACKLOG
 -- seems underline and strikeout just dont work l o l
 
 
 function GGML.CreateView( name, context, data )
-    local success, xml = GGML.parseXML( data )
+    if not data then
+        error( "Invalid XML for GGML object \"" .. name .. "\": No XML provided" )
+    end
+    local success, xml = GGML.parseXML( data, name )
 
     if not success then
         error( "Invalid XML for GGML object \"" .. name .. "\": " .. xml )
@@ -44,6 +47,8 @@ function GGML.CreateView( name, context, data )
         error( "Invalid XML for GGML object \"" .. name .. "\": Root must be singular" )
     end
     local xmlRoot = xml[1]
+
+    context = table.Copy( context ) -- Don't modify the original, in case of recreation
 
     table.Inherit( context, GGML.ContextBase )
 
@@ -71,7 +76,7 @@ function GGML.CreateView( name, context, data )
         contextInit( self )
     end
 
-    local base = GGML.FindClassName( xmlRoot.tag )
+    local base = GGML.FindClassName( xmlRoot.tag, name )
 
     vgui.Register( name, context, base )
 end

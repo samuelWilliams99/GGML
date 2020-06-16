@@ -28,7 +28,7 @@ function GGML.inflater.indexAllSuper( tab, tag, key )
     return nil
 end
 
-function GGML.FindClassName( tag )
+function GGML.FindClassName( tag, name )
     tag = GGML.TAG_ALIASES[tag] or tag
     if not vgui.GetControlTable( tag ) then
         if not vgui.GetControlTable( "D" .. tag ) then
