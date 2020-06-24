@@ -16,15 +16,13 @@ include( "example/example.lua" )
 
 -- TO TEST
 -- Make PerformLayouts get removed when u set width, height, size, etc.
--- Change binding to support 2way, @<prop for property > field, @>prop for field > property, @= for 2way
---     rewrite GGML.parseXML to handle > correctly (not end of tag if in quotes)
--- add a lookup for selfclosing tags, like <br> -- test on labels
 
 -- TO DO
 --    bg image (loaded from url() or linear-gradient(https://www.w3schools.com/css/css3_gradients.asp)), 
 --    url done by loading a DHTML with the image, using GetHTTPMaterial and drawing a rectangle with its current texture, saving that to RT, discard DHTML
 --    gradient done by layering a coloured alpha gradient over top of itself a few times in a mathsy way, probably easier than above 
 
+-- Think of more selfclosing tags
 -- Css like styling, class support, etc. this one is big -- we gettin there
 -- layouts :) -- same style as c#, override vgui.Create in vguimod to add a preAdd and postAdd function to panels
 
@@ -36,12 +34,10 @@ function GGML.CreateView( name, context, data )
     if not data then
         error( "Invalid XML for GGML object \"" .. name .. "\": No XML provided" )
     end
-    local success, xml, errPointer = GGML.parseXML( data, name )
+    local success, xml = GGML.parseXML( data, name )
 
     if not success then
-        local pre = "Invalid XML for GGML object \"" .. name .. "\": "
-        errPointer = string.rep( " ", #pre ) .. errPointer
-        error( pre .. xml .. "\n" .. errPointer )
+        error( "Invalid XML for GGML object \"" .. name .. "\": " .. xml )
     end
 
     if #xml.children ~= 1 then

@@ -24,7 +24,7 @@ local function getNextArgument( s, inputLength )
 
     local quote = s[1]
     if quote ~= "\"" and quote ~= "'" then
-        local argValue = string.match( s, "^%S+" )
+        local argValue = string.match( s, "^[%w_%-]+" )
         return argName, argValue, string.sub( s, #argValue + 1 )
     end
 
@@ -136,41 +136,38 @@ function GGML.parseXML( s, name )
         local tagName, tagType, args, newStr = getNextTag( s, inputLength )
 
         if not tagName then
-            local err = tagType
-            local pos, pointer = GGML.helper.errInfo( inputString, args )
-            local pre = err .. " at "
-            pointer = string.rep( " ", #pre ) .. pointer
-            return false, pre .. pos .. "\n" .. pointer
+            return false, tagType .. " at " .. GGML.helper.errInfo( inputString, args )
         end
 
+        local oldS = s
         s = newStr
 
         if tagType == "open" or tagType == "standAlone" then
             local empty = tagType == "standAlone"
-            local tag = { tag = tagName, args = args, empty = empty, children = {} }
+            local tag = { tag = tagName, args = args, empty = empty, children = {}, XMLPos = inputLength - #oldS }
 
             if #stack > 0 then
                 table.insert( stack[#stack].children, tag )
+            end
+
+            if GGML.TAG_SELF_CLOSE[GGML.FindClassName( tagName, name )] then
+                empty = true
             end
 
             if not empty then
                 table.insert( stack, tag )
             end
         elseif tagType == "close" then
-            while true do
-                local toClose = table.remove( stack )  -- remove top
+            local toClose = table.remove( stack )  -- remove top
 
-                if #stack < 1 then
-                    return false, "No open tag to close with " .. tagName
-                end
+            if #stack < 1 then
+                local posStr = GGML.helper.errInfo( inputString, inputLength - #s )
+                return false, "No open tag to close with " .. tagName .. " at " .. posStr
+            end
 
-                local canSelfClose = GGML.TAG_SELF_CLOSE[GGML.FindClassName( toClose.tag, name )] or false
-
-                if toClose.tag == tagName then break end
-
-                if not canSelfClose then
-                    return false, "Unable to close " .. toClose.tag .. " with " .. tagName
-                end
+            if toClose.tag ~= tagName then
+                local posStr = GGML.helper.errInfo( inputString, inputLength - #s )
+                return false, "Unable to close " .. toClose.tag .. " with " .. tagName .. " at " .. posStr
             end
         elseif tagType == "text" then
             table.insert( stack[#stack].children, tagName )
@@ -178,7 +175,9 @@ function GGML.parseXML( s, name )
     end
 
     if #stack > 1 then
-        return false, "Unclosed " .. stack[#stack].tag
+        local posStr = GGML.helper.errInfo( inputString, stack[#stack].XMLPos )
+        return false, "Unclosed " .. stack[#stack].tag .. " at " .. posStr
     end
+
     return true, stack[1]
 end

@@ -96,7 +96,7 @@ local function addField( panel, k, data )
     -- Setter
     panel._GGMLFieldFunctions = panel._GGMLFieldFunctions or {}
     local funcs = panel._GGMLFieldFunctions
-    funcs["Set" .. k] = funcs["Set" .. k] or panel["Set" .. k]
+    funcs["Set" .. k] = funcs["Set" .. k] or panel["Set" .. k] or function() end
 
     panel["Set" .. k] = function( self, ... )
         self._GGMLFields = self._GGMLFields or {}
@@ -107,7 +107,7 @@ local function addField( panel, k, data )
     end
 
     -- Getter
-    funcs["Get" .. k] = funcs["Get" .. k] or panel["Get" .. k]
+    funcs["Get" .. k] = funcs["Get" .. k] or panel["Get" .. k] or function() end
 
     if data.Get then
         panel["Get" .. k] = data.Get

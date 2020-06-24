@@ -192,8 +192,8 @@ function hook.Once( event, f )
     hookCounter = hookCounter + 1
     local id = "HOOKONCE" .. hookCounter
     hook.Add( event, id, function( ... )
-        f( ... )
         hook.Remove( event, id )
+        f( ... )
     end )
 end
 
@@ -206,16 +206,15 @@ function helper.errInfo( str, c )
     for k = c - 1, 1, -1 do
         if str[k] == "\n" then
             col = c - k
-            local nextN = string.find( string.sub( str, c + 1 ), "\n" )
+            nextN = string.find( string.sub( str, c + 1 ), "\n" )
             lineStr = string.sub( str, k + 1, nextN and ( nextN + c - 1 ) or #str )
             lineStr = string.Replace( lineStr, "\t", " " )
+            lineStr = string.sub( lineStr, 1, col - 1 ) .. "$$HERE$$" .. string.sub( lineStr, col )
             break
         end
     end
 
-    local preText = "line " .. line .. ", column " .. col .. " ("
-    local colOffset = #preText + col
-    return preText .. lineStr .. ")", string.rep( " ", colOffset ) .. "^"
+    return "line " .. line .. ", column " .. col .. " (" .. lineStr .. ")"
 end
 
 local index = {}
