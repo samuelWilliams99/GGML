@@ -15,16 +15,15 @@ include( "inflater/inflater.lua" )
 include( "example/example.lua" )
 
 -- TO TEST
--- Make PerformLayouts get removed when u set width, height, size, etc.
 
 -- TO DO
+-- layouts :) -- same style as c#, override vgui.Create in vguimod to add a preAdd and postAdd function to panels
+-- Think of more selfclosing tags
+--
+-- Css like styling, class support, etc. this one is big -- we gettin there
 --    bg image (loaded from url() or linear-gradient(https://www.w3schools.com/css/css3_gradients.asp)), 
 --    url done by loading a DHTML with the image, using GetHTTPMaterial and drawing a rectangle with its current texture, saving that to RT, discard DHTML
 --    gradient done by layering a coloured alpha gradient over top of itself a few times in a mathsy way, probably easier than above 
-
--- Think of more selfclosing tags
--- Css like styling, class support, etc. this one is big -- we gettin there
--- layouts :) -- same style as c#, override vgui.Create in vguimod to add a preAdd and postAdd function to panels
 
 -- BACKLOG
 -- seems underline and strikeout just dont work l o l

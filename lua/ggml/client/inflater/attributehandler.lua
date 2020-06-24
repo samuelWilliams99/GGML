@@ -40,7 +40,7 @@ function GGML.inflater.handleField( setter, hasGetter, getter, value, root, self
             for i = 0, 3 do
                 t[i + 1] = bit.band( bit.rshift( asNum, i * 8 ), 0xFF )
             end
-            setter( Color( t[1], t[2], t[3], t[4] ) )
+            setter( Color( t[4], t[3], t[2], t[1] ) )
         else
             return "Invalid color structure"
         end

@@ -26,22 +26,22 @@ GGML.VGUI_ADDITIONS = {}
 GGML.VGUI_ADDITIONS.OVERRIDES = {
     All = {
         SetWide = function( self, x )
+            local y
             if self._GGMLMults and self._GGMLMults.SetSize then
-                self._GGMLMults.SetSize[1] = x
-                self:InvalidateLayout( true )
+                y = self._GGMLMults.SetSize[2]
             else
-                local _x, y = self:GetSize()
-                self:SetSize( x, y )
+                _, y = self:GetSize()
             end
+            self:SetSize( x, y )
         end,
         SetTall = function( self, y )
+            local x
             if self._GGMLMults and self._GGMLMults.SetSize then
-                self._GGMLMults.SetSize[2] = y
-                self:InvalidateLayout( true )
+                x = self._GGMLMults.SetSize[1]
             else
-                local x, _y = self:GetSize()
-                self:SetSize( x, y )
+                x = self:GetSize()
             end
+            self:SetSize( x, y )
         end,
         SetBorderRadius = function( self, r )
             self:SetBorderRadii( r, r, r, r )
@@ -120,13 +120,13 @@ GGML.VGUI_ADDITIONS.FIELDS = {
     All = {
         Left = {
             Set = function( self, x )
+                local y
                 if self._GGMLMults and self._GGMLMults.SetPos then
-                    self._GGMLMults.SetPos[1] = x
-                    self:InvalidateLayout( true )
+                    y = self._GGMLMults.SetPos[2]
                 else
-                    local _x, y = self:GetPos()
-                    self:SetPos( x, y )
+                    _, y = self:GetPos()
                 end
+                self:SetPos( x, y )
             end,
             Get = function( self )
                 local x, y = self:GetPos()
@@ -135,13 +135,13 @@ GGML.VGUI_ADDITIONS.FIELDS = {
         },
         Top = {
             Set = function( self, y )
+                local x
                 if self._GGMLMults and self._GGMLMults.SetPos then
-                    self._GGMLMults.SetPos[2] = y
-                    self:InvalidateLayout( true )
+                    x = self._GGMLMults.SetPos[1]
                 else
-                    local x, _y = self:GetPos()
-                    self:SetPos( x, y )
+                    x = self:GetPos()
                 end
+                self:SetPos( x, y )
             end,
             Get = function( self )
                 local x, y = self:GetPos()

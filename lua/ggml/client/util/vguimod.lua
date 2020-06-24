@@ -13,38 +13,41 @@ local function getPercent( str )
     return nil
 end
 
+local function performLayout( self )
+    for fName, values in pairs( self._GGMLMults ) do
+        local prevVal = self._GGMLPrevVals[fName] or {}
+        local pFunc = self._GGMLPercentFuncs[fName]
+        local pVals = { pFunc( self:GetParent() or screen ) }
+
+        values = table.Copy( values )
+
+        local changed = false
+        for k, v in ipairs( values ) do
+            local n = getPercent( v )
+            if pVals[k] ~= nil and n then
+                values[k] = n * pVals[k]
+            end
+            if values[k] ~= prevVal[k] then
+                changed = true
+            end
+        end
+
+        if changed then
+            self._GGMLPrevVals[fName] = values
+            self._GGMLOldSetters[fName]( self, unpack( values ) )
+        end
+
+    end
+
+    self._GGMLOldPerformLayout( self )
+end
+
 local function addPerformLayout( element )
     if not element._GGMLOldPerformLayout then
         element._GGMLOldPerformLayout = element.PerformLayout or function() end
     end
-    function element:PerformLayout()
-        for fName, values in pairs( self._GGMLMults ) do
-            local prevVal = self._GGMLPrevVals[fName] or {}
-            local pFunc = self._GGMLPercentFuncs[fName]
-            local pVals = { pFunc( self:GetParent() or screen ) }
 
-            values = table.Copy( values )
-
-            local changed = false
-            for k, v in ipairs( values ) do
-                local n = getPercent( v )
-                if pVals[k] ~= nil and n then
-                    values[k] = n * pVals[k]
-                end
-                if values[k] ~= prevVal[k] then
-                    changed = true
-                end
-            end
-
-            if changed then
-                self._GGMLPrevVals[fName] = values
-                self._GGMLOldSetters[fName]( self, unpack( values ) )
-            end
-
-        end
-
-        self._GGMLOldPerformLayout( self )
-    end
+    element.PerformLayout = performLayout
 end
 
 local function makePercentable( element, fName, percentFunc )
@@ -91,8 +94,11 @@ local function makePercentable( element, fName, percentFunc )
         if not foundPercent then
             if self._GGMLOldPerformLayout then
                 self._GGMLMults[fName] = nil
-                self.PerformLayout = self._GGMLOldPerformLayout
-                self._GGMLOldPerformLayout = nil
+
+                if #table.GetKeys( self._GGMLMults ) == 0 then
+                    self.PerformLayout = self._GGMLOldPerformLayout
+                    self._GGMLOldPerformLayout = nil
+                end
             end
             self._GGMLOldSetters[fName]( self, ... )
         end

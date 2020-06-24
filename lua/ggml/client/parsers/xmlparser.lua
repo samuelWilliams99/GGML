@@ -24,7 +24,7 @@ local function getNextArgument( s, inputLength )
 
     local quote = s[1]
     if quote ~= "\"" and quote ~= "'" then
-        local argValue = string.match( s, "^[%w_%-]+" )
+        local argValue = string.match( s, "^[%w_%-%%#]+" )
         return argName, argValue, string.sub( s, #argValue + 1 )
     end
 

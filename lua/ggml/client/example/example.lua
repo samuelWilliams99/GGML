@@ -2,12 +2,8 @@ local exampleXML = include( "ggml/client/example/example.xml.lua" )
 
 local CONTEXT = {}
 
-function CONTEXT:buttonClick( elem )
+function CONTEXT:buttonClick( btn )
     print( self.test.property.thing )
-    self.test.property.thing = "change!"
-    elem:SetFontSize( 10 )
-    local elem = self:GetElementByID( "yote" )
-    elem:SetBackgroundColor( Color( 255, 0, 0 ) )
 end
 
 function CONTEXT:PreInit()
@@ -16,5 +12,5 @@ end
 
 function GGML.runExample()
     GGML.CreateView( "exampleView", CONTEXT, exampleXML )
-    local a = vgui.Create( "exampleView" )
+    vgui.Create( "exampleView" )
 end
