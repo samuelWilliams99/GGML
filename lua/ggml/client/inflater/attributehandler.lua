@@ -107,9 +107,9 @@ function GGML.inflater.getGetter( elem, tag, key, self )
     if isfunction( getter ) then
         return true, GGML.helper.curry( getter, elem ) -- Global setter
     elseif elem[getterName] then
-        return true, function() elem[getterName]( elem ) end
+        return true, function() return elem[getterName]( elem ) end
     elseif elem[key] then
-        return true, function() elem[key]( elem ) end
+        return true, function() return elem[key]( elem ) end
     else
         return false, "Couldn't resolve key"
     end

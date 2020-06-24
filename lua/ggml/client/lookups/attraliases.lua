@@ -1,3 +1,10 @@
+local textAliases = {
+    ["Font-Size"] = "FontSize",
+    ["Font-Family"] = "FontFamily",
+    ["Font-Weight"] = "FontWeight",
+    ["Font-Decoration"] = "FontDecoration"
+}
+
 GGML.ATTR_ALIASES = {
     All = {
         id = "ID",
@@ -9,10 +16,6 @@ GGML.ATTR_ALIASES = {
     Button = {
         OnClick = "DoClick"
     },
-    Label = {
-        ["Font-Size"] = "FontSize",
-        ["Font-Family"] = "FontFamily",
-        ["Font-Weight"] = "FontWeight",
-        ["Font-Decoration"] = "FontDecoration"
-    }
+    Label = textAliases,
+    TextEntry = textAliases,
 }

@@ -120,6 +120,12 @@ end
 
 function GGML.paintManager.GetPaintSetter( attr )
     return function( self, ... )
+        -- If just setting color, and no other fancy functions have been used, ignore
+        if attr == "bgColor" and not self._GGMLPaintData then
+            self._GGMLFieldFunctions.SetBackgroundColor( self, ... )
+            return
+        end
+
         GGML.paintManager.addPaint( self )
         self._GGMLPaintData.changed = true
         if attr == "bgColor" then
@@ -142,7 +148,13 @@ end
 
 function GGML.paintManager.addPaint( elem )
     if elem._GGMLPaintData then return end
+
     elem._GGMLPaintData = table.Copy( GGML.paintManager.default )
+
+    if elem.GetBackgroundColor then
+        elem._GGMLPaintData.background = elem:GetBackgroundColor()
+    end
+
     elem.Paint = GGML.paintManager.Paint
 end
 

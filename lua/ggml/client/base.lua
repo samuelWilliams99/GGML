@@ -44,11 +44,10 @@ function GGML.CreateView( name, context, data )
         error( pre .. xml .. "\n" .. errPointer )
     end
 
-    local rootKeys = table.GetKeys( xml )
-    if #rootKeys ~= 1 or rootKeys[1] ~= 1 then
+    if #xml.children ~= 1 then
         error( "Invalid XML for GGML object \"" .. name .. "\": Root must be singular" )
     end
-    local xmlRoot = xml[1]
+    local xmlRoot = xml.children[1]
 
     context = table.Copy( context ) -- Don't modify the original, in case of recreation
 

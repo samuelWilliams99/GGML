@@ -52,7 +52,7 @@ function CONTEXT:FindElementById( id, root )
     if root.element.id == id then
         return root.element
     end
-    for k, v in ipairs( root ) do
+    for k, v in ipairs( root.children ) do
         local find = self:FindElementById( id, v )
         if find ~= nil then return find end
     end

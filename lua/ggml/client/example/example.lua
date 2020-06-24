@@ -4,10 +4,10 @@ local CONTEXT = {}
 
 function CONTEXT:buttonClick( elem )
     print( self.test.property.thing )
+    self.test.property.thing = "change!"
     elem:SetFontSize( 10 )
     local elem = self:GetElementByID( "yote" )
     elem:SetBackgroundColor( Color( 255, 0, 0 ) )
-    elem:SetBorderRadius( 10 )
 end
 
 function CONTEXT:PreInit()

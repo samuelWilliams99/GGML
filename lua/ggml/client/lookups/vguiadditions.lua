@@ -10,15 +10,17 @@ local function wh( parent )
     return parent:GetSize()
 end
 
+local textPercentables = {
+    SetFontSize = h
+}
 
 GGML.PERCENTABLE = {
     All = {
         SetPos = wh,
         SetSize = wh
     },
-    DLabel = {
-        SetFontSize = h
-    }
+    DLabel = textPercentables,
+    DTextEntry = textPercentables,
 }
 GGML.VGUI_ADDITIONS = {}
 GGML.VGUI_ADDITIONS.OVERRIDES = {
@@ -47,6 +49,9 @@ GGML.VGUI_ADDITIONS.OVERRIDES = {
         GetBorderRadius = function( self )
             local r = self:GetBorderRadii()
             return r
+        end,
+        UseGGMLBackground = function( self )
+            GGML.paintManager.addPaint( self )
         end
     },
     DLabel = {
@@ -59,6 +64,58 @@ GGML.VGUI_ADDITIONS.OVERRIDES = {
 
     }
 }
+
+local textAttrs = {
+    FontSize = {
+        Set = GGML.fontManager.GetFontSetter( "size" ),
+        Default = GGML.fontManager.defaultFont.size
+    },
+    FontFamily = {
+        Set = GGML.fontManager.GetFontSetter( "font" ),
+        Default = GGML.fontManager.defaultFont.font
+    },
+    FontWeight = {
+        Set = GGML.fontManager.GetFontSetter( "weight" ),
+        Default = GGML.fontManager.defaultFont.weight
+    },
+    FontDecoration = {
+        Set = function( self, val )
+            local decos = string.Split( val, " " )
+            local d = {}
+            for k, v in pairs( decos ) do
+                v = string.lower( v )
+                if v == "underline" then
+                    d.underline = true
+                elseif v == "italic" or v == "italics" then
+                    d.italic = true
+                elseif v == "strikeout" or v == "strike-out" or v == "strikethrough" or v == "strike-through" then
+                    d.strikeout = true
+                elseif v == "bold" then
+                    d.weight = 800
+                end
+            end
+            GGML.AdjustFont( self, d )
+        end,
+        Get = function( self )
+            local data = GGML.fontManager.GetFontData( self )
+            local out = ""
+            if data.underline then
+                out = out .. "underline "
+            end
+            if data.italic then
+                out = out .. "italic "
+            end
+            if data.strikeout then
+                out = out .. "strikeout "
+            end
+            if out[#out] == " " then
+                out = string.sub( out, 1, #out - 1 )
+            end
+            return out
+        end
+    }
+}
+
 GGML.VGUI_ADDITIONS.FIELDS = {
     All = {
         Left = {
@@ -91,9 +148,9 @@ GGML.VGUI_ADDITIONS.FIELDS = {
                 return y
             end
         },
-        GGMLBackgroundColor = {
+        BackgroundColor = {
             Set = GGML.paintManager.GetPaintSetter( "bgColor" ),
-            Default = Color( 0, 0, 0, 0 )
+            Default = Color( 255, 255, 255 )
         },
         BackgroundTexture = {
             Set = GGML.paintManager.GetPaintSetter( "bgTexture" ),
@@ -114,56 +171,8 @@ GGML.VGUI_ADDITIONS.FIELDS = {
             Set = GGML.paintManager.GetPaintSetter( "borderSides" )
         }
     },
-    DLabel = {
-        FontSize = {
-            Set = GGML.fontManager.GetFontSetter( "size" ),
-            Default = GGML.fontManager.defaultFont.size
-        },
-        FontFamily = {
-            Set = GGML.fontManager.GetFontSetter( "font" ),
-            Default = GGML.fontManager.defaultFont.font
-        },
-        FontWeight = {
-            Set = GGML.fontManager.GetFontSetter( "weight" ),
-            Default = GGML.fontManager.defaultFont.weight
-        },
-        FontDecoration = {
-            Set = function( self, val )
-                local decos = string.Split( val, " " )
-                local d = {}
-                for k, v in pairs( decos ) do
-                    v = string.lower( v )
-                    if v == "underline" then
-                        d.underline = true
-                    elseif v == "italic" or v == "italics" then
-                        d.italic = true
-                    elseif v == "strikeout" or v == "strike-out" or v == "strikethrough" or v == "strike-through" then
-                        d.strikeout = true
-                    elseif v == "bold" then
-                        d.weight = 800
-                    end
-                end
-                GGML.AdjustFont( self, d )
-            end,
-            Get = function( self )
-                local data = GGML.fontManager.GetFontData( self )
-                local out = ""
-                if data.underline then
-                    out = out .. "underline "
-                end
-                if data.italic then
-                    out = out .. "italic "
-                end
-                if data.strikeout then
-                    out = out .. "strikeout "
-                end
-                if out[#out] == " " then
-                    out = string.sub( out, 1, #out - 1 )
-                end
-                return out
-            end
-        }
-    },
+    DLabel = textAttrs,
+    DTextEntry = textAttrs,
     DPanel = {
 
     },

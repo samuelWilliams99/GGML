@@ -90,10 +90,14 @@ local function makePercentable( element, fName, percentFunc )
     end
 end
 
-local elems = { "DPanel", "DFrame", "DLabel" }
+local elems = { "DPanel", "DFrame", "DLabel", "DTextEntry" }
 
 local function addField( panel, k, data )
     -- Setter
+    panel._GGMLFieldFunctions = panel._GGMLFieldFunctions or {}
+    local funcs = panel._GGMLFieldFunctions
+    funcs["Set" .. k] = funcs["Set" .. k] or panel["Set" .. k]
+
     panel["Set" .. k] = function( self, ... )
         self._GGMLFields = self._GGMLFields or {}
         self._GGMLFields[k] = { ... }
@@ -103,6 +107,8 @@ local function addField( panel, k, data )
     end
 
     -- Getter
+    funcs["Get" .. k] = funcs["Get" .. k] or panel["Get" .. k]
+
     if data.Get then
         panel["Get" .. k] = data.Get
     else
