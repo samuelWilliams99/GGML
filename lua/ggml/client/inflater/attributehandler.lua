@@ -9,7 +9,7 @@ function GGML.inflater.handleField( setter, hasGetter, getter, value, root, self
             -- property -> element
             match = true
             local attrName = string.sub( rest, 2 )
-            local v = helper.index( root, attrName )
+            local v = GGML.helper.index( root, attrName )
             root:AddChangeListener( attrName, setter )
             if v then
                 setter( v )
@@ -26,7 +26,7 @@ function GGML.inflater.handleField( setter, hasGetter, getter, value, root, self
             end
         end
         if not match then
-            local v = helper.index( root, rest )
+            local v = GGML.helper.index( root, rest )
             setter( v )
         end
     elseif prefix == "&" then
@@ -38,7 +38,7 @@ function GGML.inflater.handleField( setter, hasGetter, getter, value, root, self
             if #rest == 6 then asNum = asNum * 256 + 255 end
             local t = {}
             for i = 0, 3 do
-                t[i + 1] = bit.band( bit.rshift( asNum, ( i * 8 ) ), 0xFF )
+                t[i + 1] = bit.band( bit.rshift( asNum, i * 8 ), 0xFF )
             end
             setter( Color( t[1], t[2], t[3], t[4] ) )
         else
@@ -68,7 +68,7 @@ end
 
 function GGML.inflater.parseSetValue( self, v )
     if type( v ) == "function" then
-        return helper.curry( v, self )
+        return GGML.helper.curry( v, self )
     end
     return v
 end
@@ -82,7 +82,7 @@ function GGML.inflater.getSetter( elem, tag, key, doSet, self )
     end
 
     if isfunction( setter ) then
-        return true, helper.curry( setter, elem ) -- Global setter
+        return true, GGML.helper.curry( setter, elem ) -- Global setter
     elseif elem[setterName] then
         if doSet then
             return true, function( v ) elem[setterName] = GGML.inflater.parseSetValue( self, v ) end
@@ -105,7 +105,7 @@ function GGML.inflater.getGetter( elem, tag, key, self )
     local getter = GGML.inflater.indexAllSuper( GGML.ATTR_GETTERS, tag, key )
 
     if isfunction( getter ) then
-        return true, helper.curry( getter, elem ) -- Global setter
+        return true, GGML.helper.curry( getter, elem ) -- Global setter
     elseif elem[getterName] then
         return true, function() elem[getterName]( elem ) end
     elseif elem[key] then

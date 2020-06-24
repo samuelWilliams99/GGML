@@ -1,5 +1,5 @@
-helper = {}
-h = helper
+local helper = {}
+GGML.helper = helper
 
 -- Pull out basic ops into functions
 function helper.add( a, b )

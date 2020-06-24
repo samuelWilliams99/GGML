@@ -24,7 +24,7 @@ local function addSegment( poly, centX, centY, radius, startAngle, w, h, borderW
     return start, #poly
 end
 
-local double = function( x ) return helper.rep( x, 2 ) end
+local double = function( x ) return GGML.helper.rep( x, 2 ) end
 
 -- This function is really gross, please don't judge me :(
 local function generatePolygons( w, h, borderW, sides, tl, tr, br, bl )

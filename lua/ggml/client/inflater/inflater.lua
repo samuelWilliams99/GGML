@@ -2,7 +2,7 @@ GGML.inflater = {}
 
 include( "attributehandler.lua" )
 
-GGML.inflater.getGlobalValue = helper.curry( helper.index, _G )
+GGML.inflater.getGlobalValue = GGML.helper.curry( GGML.helper.index, _G )
 
 function GGML.inflater.indexAllSuper( tab, tag, key )
     if tab.All and tab.All[key] then

@@ -2,7 +2,7 @@ GGML.css = {}
 local css = GGML.css
 
 css.attributeOpLookup = {
-    ["="] = helper.eq,
+    ["="] = GGML.helper.eq,
     ["~="] = function( a, b )
         return tobool( string.find( " " .. a .. " ", "%s" .. string.PatternSafe( b ) .. "%s" ) )
     end,
@@ -164,7 +164,7 @@ local function parseLabels( str )
     local labels = string.Explode( "[%s\n]*,[%s\n]*", str, true )
     local out = {}
     for _, label in pairs( labels ) do
-        local selectors = helper.splitStringSpecial( label, { " ", ">", "+", "~" }, {
+        local selectors = GGML.helper.splitStringSpecial( label, { " ", ">", "+", "~" }, {
             ["["] = "]",
             ["\""] = "\"",
             ["'"] = "'",
@@ -206,7 +206,7 @@ local function attemptResolveFunction( data )
 end
 
 local function parseAttributeValue( value )
-    local valueSplit = helper.splitStringSpecial( value, { " ", "," }, {
+    local valueSplit = GGML.helper.splitStringSpecial( value, { " ", "," }, {
         ["\""] = "\"",
         ["'"] = "'",
         ["("] = ")"
@@ -277,7 +277,7 @@ end
 
 local function parseAttributes( attrs )
     local out = {}
-    local attrsSplit = helper.splitStringSpecial( attrs, { ";" }, {
+    local attrsSplit = GGML.helper.splitStringSpecial( attrs, { ";" }, {
         ["\""] = "\"",
         ["'"] = "'",
         ["("] = ")"
@@ -310,11 +310,11 @@ function GGML.parseCSS( str )
             if e == #str then
                 break
             else
-                return false, "Invalid format at " .. helper.errInfo( str, e )
+                return false, "Invalid format at " .. GGML.helper.errInfo( str, e )
             end
         end
         if s ~= e + 1 then
-            return false, "Invalid format at " .. helper.errInfo( str, s )
+            return false, "Invalid format at " .. GGML.helper.errInfo( str, s )
         end
         e = ne
         local labels = parseLabels( labelsStr )

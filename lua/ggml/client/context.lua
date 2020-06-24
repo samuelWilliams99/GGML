@@ -3,14 +3,14 @@ local CONTEXT = {}
 GGML.ContextBase = CONTEXT
 
 local function setupMeta( self, k )
-    local _, poses = helper.index( self, k )
+    local _, poses = GGML.helper.index( self, k )
     if poses then
         local tab = poses[#poses]
 
         if not tab._GGMLHasListener then
             if #poses > 1 then
                 local sLast = string.match( k, "^.+%.(.+)%.[^%.]+$" ) or string.match( k, "^(.+)%.[^%.]+$" ) -- yikes lol
-                poses[#poses - 1][sLast] = helper.getProxy( poses[#poses] )
+                poses[#poses - 1][sLast] = GGML.helper.getProxy( poses[#poses] )
                 poses[#poses] = poses[#poses - 1][sLast]
                 tab = poses[#poses]
             end
