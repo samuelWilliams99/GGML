@@ -43,6 +43,7 @@ end
 function GGML.Inflate( name, xml, parent, root )
     local tag = xml.tag
     local args = xml.args
+    local children = xml.children
     local className = GGML.FindClassName( tag )
 
     local elem
@@ -82,18 +83,18 @@ function GGML.Inflate( name, xml, parent, root )
         end
     end
 
-    if type( xml[1] ) == "string" and not xml[2] then
+    if type( children[1] ) == "string" and not children[2] then
         if elem.SetText then
-            elem:SetText( xml[1] )
+            elem:SetText( children[1] )
         elseif elem.SetValue then
-            elem:SetValue( xml[1] )
+            elem:SetValue( children[1] )
         else
             error( "Invalid XML for GGML object \"" .. name .. "\": Couldn't resolve text content for tag \"" .. tag .. "\"" )
         end
-        xml[1] = nil
+        children[1] = nil
     end
 
-    for k, v in ipairs( xml ) do
+    for k, v in ipairs( children ) do
         if not istable( v ) then
             error( "Invalid XML for GGML object \"" .. name .. "\": Text content must be singular for tag \"" .. tag .. "\"" )
         end
