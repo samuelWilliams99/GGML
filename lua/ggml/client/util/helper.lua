@@ -208,10 +208,14 @@ function helper.errInfo( str, c )
             col = c - k
             local nextN = string.find( string.sub( str, c + 1 ), "\n" )
             lineStr = string.sub( str, k + 1, nextN and ( nextN + c - 1 ) or #str )
+            lineStr = string.Replace( lineStr, "\t", " " )
             break
         end
     end
-    return "line " .. line .. ", column " .. col .. " (" .. lineStr .. ")"
+
+    local preText = "line " .. line .. ", column " .. col .. " ("
+    local colOffset = #preText + col
+    return preText .. lineStr .. ")", string.rep( " ", colOffset ) .. "^"
 end
 
 local index = {}

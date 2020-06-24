@@ -36,10 +36,12 @@ function GGML.CreateView( name, context, data )
     if not data then
         error( "Invalid XML for GGML object \"" .. name .. "\": No XML provided" )
     end
-    local success, xml = GGML.parseXML( data, name )
+    local success, xml, errPointer = GGML.parseXML( data, name )
 
     if not success then
-        error( "Invalid XML for GGML object \"" .. name .. "\": " .. xml )
+        local pre = "Invalid XML for GGML object \"" .. name .. "\": "
+        errPointer = string.rep( " ", #pre ) .. errPointer
+        error( pre .. xml .. "\n" .. errPointer )
     end
 
     local rootKeys = table.GetKeys( xml )

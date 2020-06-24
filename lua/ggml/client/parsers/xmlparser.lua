@@ -98,13 +98,13 @@ end
 local function getNextArgument( s, inputLength )
     local argName = string.match( s, "^([%$]?[%w_%-]+)" )
 
-    if not prefix then
+    if not argName then
         return nil, "Malformed argument name", inputLength - #s
     end
 
     s = string.sub( s, #argName + 1 )
 
-    local equals = string.match( s, "%s*=%s*" )
+    local equals = string.match( s, "^[%s\n]*=[%s\n]*" )
     if not equals then
         return argName, GGML.NO_VALUE, s
     end
@@ -114,7 +114,7 @@ local function getNextArgument( s, inputLength )
     local quote = s[1]
     if quote ~= "\"" and quote ~= "'" then
         local argValue = string.match( s, "^%S+" )
-        return argName, argValue, string.sub( s, #value + 1 )
+        return argName, argValue, string.sub( s, #argValue + 1 )
     end
 
     local k = 1
@@ -156,13 +156,14 @@ local function getNextTag( s, inputLength )
 
         return comment, "comment", nil, string.sub( s, endPos + 1 )
     else
-        local tagName = string.match( s, "^</?([%w_]+)" )
+        local tagName = string.match( s, "^</?([%w_%-]+)" )
 
         if not tagName then return nil, "Malformed tag", inputLength - #s end
 
-        local rest = string.sub( s, tagName + 2 )
-
         local close = s[2] == "/"
+
+        local rest = string.sub( s, #tagName + ( close and 3 or 2 ) )
+
         if close then
             rest = string.TrimLeft( rest )
             if rest[1] ~= ">" then
@@ -225,8 +226,10 @@ function GGML.parseXML( s, name )
 
         if not tagName then
             local err = tagType
-            local pos = args
-            return false, err .. " at " .. GGML.helper.errInfo( inputString, pos )
+            local pos, pointer = GGML.helper.errInfo( inputString, args )
+            local pre = err .. " at "
+            pointer = string.rep( " ", #pre ) .. pointer
+            return false, pre .. pos .. "\n" .. pointer
         end
 
         s = newStr
