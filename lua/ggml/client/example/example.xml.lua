@@ -5,7 +5,7 @@ return [[
   	   Title="Ur mom the gay"
   	   Center
   	   MakePopup >
-  	<Panel id="yote" Top="50" Left="200" Width="200" Height="200"/>
+  	<Panel id="yote" Left="200" Top="10%" Width="200" Height="300"/>
 	<TextEntry id="testLabel" Top="50" Left="50"
 		   Height="100" Width="100" Text="@=test.property.thing"
 		   Font-Family="Roboto" Font-Size="30"

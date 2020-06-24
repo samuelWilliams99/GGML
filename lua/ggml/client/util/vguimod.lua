@@ -18,25 +18,27 @@ local function addPerformLayout( element )
         element._GGMLOldPerformLayout = element.PerformLayout or function() end
     end
     function element:PerformLayout()
-        for fName, val in pairs( self._GGMLMults ) do
+        for fName, values in pairs( self._GGMLMults ) do
             local prevVal = self._GGMLPrevVals[fName] or {}
             local pFunc = self._GGMLPercentFuncs[fName]
             local pVals = { pFunc( self:GetParent() or screen ) }
 
+            values = table.Copy( values )
+
             local changed = false
-            for k, v in ipairs( val ) do
+            for k, v in ipairs( values ) do
                 local n = getPercent( v )
                 if pVals[k] ~= nil and n then
-                    val[k] = n * pVals[k]
+                    values[k] = n * pVals[k]
                 end
-                if val[k] ~= prevVal[k] then
+                if values[k] ~= prevVal[k] then
                     changed = true
                 end
             end
 
             if changed then
-                self._GGMLPrevVals[fName] = table.Copy( val )
-                self._GGMLOldSetters[fName]( self, unpack( val ) )
+                self._GGMLPrevVals[fName] = values
+                self._GGMLOldSetters[fName]( self, unpack( values ) )
             end
 
         end
@@ -64,27 +66,34 @@ local function makePercentable( element, fName, percentFunc )
         self._GGMLPrevVals = self._GGMLPrevVals or {}
         self._GGMLMults = self._GGMLMults or {}
 
-        local pFunc = self._GGMLPercentFuncs[fName]
-        local pVals = { pFunc( self:GetParent() or screen ) }
-
         local args = { ... }
         local foundPercent = false
         for k, v in ipairs( args ) do
             n = getPercent( v )
-            if pVals[k] ~= nil and n then
-                foundPercent = true
+            if n then
+                local pFunc = self._GGMLPercentFuncs[fName]
+                local pVals = { pFunc( self:GetParent() or screen ) }
 
-                self._GGMLMults[fName] = args
+                if pVals[k] ~= nil then
 
-                addPerformLayout( self )
-                self:InvalidateLayout( true )
+                    foundPercent = true
 
-                break
+                    self._GGMLMults[fName] = args
+
+                    addPerformLayout( self )
+                    self:InvalidateLayout( true )
+
+                    break
+                end
             end
         end
 
         if not foundPercent then
-            self._GGMLMults[fName] = nil
+            if self._GGMLOldPerformLayout then
+                self._GGMLMults[fName] = nil
+                self.PerformLayout = self._GGMLOldPerformLayout
+                self._GGMLOldPerformLayout = nil
+            end
             self._GGMLOldSetters[fName]( self, ... )
         end
     end

@@ -55,6 +55,7 @@ function GGML.CreateView( name, context, data )
         if self.PreInit then self:PreInit() end
 
         self.xmlRoot = table.Copy( xmlRoot )
+        self.xml = self.xmlRoot
 
         self.changeListeners = {}
         self.mtGetters = {}
