@@ -189,7 +189,7 @@ local function getNextTag( s, inputLength )
                 break
             end
 
-            if char == " " or char == "\t" or char == "\n" then
+            if isWhiteSpace( char ) then
                 rest = string.sub( rest, 2 )
                 continue
             end
