@@ -1,5 +1,3 @@
-local exampleXML = include( "ggml/client/example/example.xml.lua" )
-
 local CONTEXT = {}
 
 function CONTEXT:buttonClick( btn )
@@ -11,6 +9,6 @@ function CONTEXT:PreInit()
 end
 
 function GGML.runExample()
-    GGML.CreateView( "exampleView", CONTEXT, exampleXML )
+    GGML.CreateView( "exampleView", CONTEXT, include( "ggml/client/example/example.xml.lua" ) )
     vgui.Create( "exampleView" )
 end
