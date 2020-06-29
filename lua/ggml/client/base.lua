@@ -18,20 +18,10 @@ include( "example/example.lua" )
 
 --[[
 TO TEST
+Grid layout
 
 TO DO
 layouts :) -- same style as c#
-    Requires implementing child properties, valid properties defined on the element
-        something like "GetAllChildProperties", check this then check element name
-        Decide on structure of child properties and how they'll be stored on the element
-    Grid
-        \/ for Rows as well
-        ColumnDefinitions
-            ColumnDefinition
-                Width - number (fixed), number* (weight), * (1* - default)
-        Column
-        ColumnSpan
-        Make changing any of these values trigger an invalidateparent, and do all the positioning in the layout
     Linear
         Orientation (Horizontal or Vertical)
         just puts shit in a line

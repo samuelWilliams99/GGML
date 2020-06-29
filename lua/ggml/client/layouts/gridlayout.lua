@@ -1,9 +1,8 @@
 local PANEL = {}
 
 function PANEL:Init()
-    self._rows = {}
-    self._columns = {}
-    self._panels = {}
+    self._rows = { { type = "ratio", weight = 1 } }
+    self._columns = { { type = "ratio", weight = 1 } }
     self._children = {}
 end
 
@@ -38,70 +37,30 @@ end
 function PANEL:PerformLayout()
     if not self._changed then return end
 
-    self._changed = true
+    self._changed = false
 
-    local curSize = Vector( #self._columns, #self._rows )
-    if self._prevSize ~= curSize then
-        self._prevSize = curSize
-
-        -- Delay to avoid complaints about creating elements in PerformLayout
-        timer.Simple( 0, function()
-            self:CreatePanels()
-        end )
-    else
-        self:PositionPanels()
-    end
-end
-
-function PANEL:CreatePanels()
-    for k, child in pairs( self._children ) do
-        child:SetParent( nil )
-    end
-
-    self:Clear()
-    self._panels = {}
-    for x, colData in pairs( self._columns ) do
-        self._panels[x] = {}
-        for y, rowData in pairs( self._rows ) do
-            self._addingChildPanel = true
-            self._panels[x][y] = vgui.Create( "DPanel", self )
-            self._addingChildPanel = false
-            self._panels[x][y].Paint = nil
-        end
-    end
+    self:CalculatePositionData()
 
     for k, child in pairs( self._children ) do
         self:UpdateGridPosition( child )
     end
-
-    self:PositionPanels()
 end
 
-function PANEL:PositionPanels()
+function PANEL:CalculatePositionData()
     local w, h = self:GetSize()
     local totalColumnWeight = 0
     local totalRowWeight = 0
 
     for _, colData in pairs( self._columns ) do
         if colData.type == "const" then
-            w = w - colData.size
+            w = math.max( w - colData.size, 0 )
         elseif colData.type == "ratio" then
             totalColumnWeight = totalColumnWeight + colData.weight
         end
     end
 
-    for _, rowData in pairs( self._rows ) do
-        if rowData.type == "const" then
-            h = h - rowData.size
-        elseif rowData.type == "ratio" then
-            totalRowWeight = totalRowWeight + rowData.weight
-        end
-    end
-
     local x = 0
-
-    for gridX, col in pairs( self._panels ) do
-        local colData = self._columns[gridX]
+    for gridX, colData in pairs( self._columns ) do
         local slotWidth = 0
         if colData.type == "const" then
             slotWidth = colData.size
@@ -109,33 +68,70 @@ function PANEL:PositionPanels()
             slotWidth = ( colData.weight / totalColumnWeight ) * w
         end
 
-        local y = 0
-        for gridY, panel in pairs( col ) do
-            local rowData = self._rows[gridY]
-            local slotHeight = 0
-            if rowData.type == "const" then
-                slotHeight = rowData.size
-            elseif rowData.type == "ratio" then
-                slotHeight = ( rowData.weight / totalRowWeight ) * h
-            end
-
-            panel:SetPos( x, y )
-            panel:SetSize( slotWidth, slotHeight )
-
-            y = y + slotHeight
-        end
+        colData.x = x
+        colData.w = slotWidth
 
         x = x + slotWidth
     end
+
+
+    for _, rowData in pairs( self._rows ) do
+        if rowData.type == "const" then
+            h = math.max( h - rowData.size, 0 )
+        elseif rowData.type == "ratio" then
+            totalRowWeight = totalRowWeight + rowData.weight
+        end
+    end
+
+    local y = 0
+    for gridY, rowData in pairs( self._rows ) do
+        local slotHeight = 0
+        if rowData.type == "const" then
+            slotHeight = rowData.size
+        elseif rowData.type == "ratio" then
+            slotHeight = ( rowData.weight / totalRowWeight ) * h
+        end
+
+        rowData.y = y
+        rowData.h = slotHeight
+
+        y = y + slotHeight
+    end
+
+    self._gridDataCalculated = true
 end
 
 function PANEL:UpdateGridPosition( panel )
-    if #self._panels == 0 then return end
+    if not self._gridDataCalculated then return end
+
     local gridX, gridY = panel:GetGridColumn(), panel:GetGridRow()
+
     gridX = math.Clamp( gridX, 1, #self._columns )
     gridY = math.Clamp( gridY, 1, #self._rows )
-    local gridPanel = self._panels[gridX][gridY]
-    panel:SetParent( gridPanel )
+
+    local gridXSpan, gridYSpan = panel:GetGridColumnSpan(), panel:GetGridRowSpan()
+    gridXSpan = math.max( gridXSpan, 1 )
+    gridYSpan = math.max( gridYSpan, 1 )
+
+    local x, y = self._columns[gridX].x, self._rows[gridY].y
+    local w, h = 0, 0
+
+    for k = gridX, gridX + gridXSpan - 1 do
+        local colData = self._columns[k]
+        if not colData then break end
+
+        w = w + colData.w
+    end
+
+    for k = gridY, gridX + gridYSpan - 1 do
+        local colData = self._rows[k]
+        if not colData then break end
+
+        h = h + colData.h
+    end
+
+    panel:SetPos( x, y )
+    panel:SetSize( w, h )
 end
 
 function PANEL:PostChildAdded( panel )
@@ -157,11 +153,27 @@ function PANEL:PostChildAdded( panel )
         return self._gridRow
     end
 
+    function panel:SetGridColumnSpan( x )
+        self._gridColumnSpan = x
+        this:UpdateGridPosition( self )
+    end
+    function panel:SetGridRowSpan( x )
+        self._gridRowSpan = x
+        this:UpdateGridPosition( self )
+    end
+    function panel:GetGridColumnSpan()
+        return self._gridColumnSpan
+    end
+    function panel:GetGridRowSpan()
+        return self._gridRowSpan
+    end
+
     panel._gridColumn = 1
     panel._gridRow = 1
+    panel._gridColumnSpan = 1
+    panel._gridRowSpan = 1
     table.insert( self._children, panel )
     self:UpdateGridPosition( panel )
-    panel:Dock( FILL )
 end
 
 function PANEL:GetChildPropertyStructure()
@@ -235,6 +247,7 @@ function PANEL:SetChildProperties( props )
             end
             hadCols = true
 
+            self._columns = {}
             local success, val = self:_validateDefinitions( property.children, false )
             if not success then
                 return false, "Invalid ColumnDefintion Width \"" .. val .. "\""
@@ -245,6 +258,7 @@ function PANEL:SetChildProperties( props )
             end
             hadRows = true
 
+            self._rows = {}
             local success, val = self:_validateDefinitions( property.children, true )
             if not success then
                 return false, "Invalid RowDefintion Width \"" .. val .. "\""

@@ -8,13 +8,12 @@ return [[
   	<GridLayout Dock=^FILL>
         <ColumnDefinitions>
             <ColumnDefinition Width = 1*>
+            <ColumnDefinition Width = 3*>
+            <ColumnDefinition Width = 2*>
+            <ColumnDefinition Width = 1*>
         </ColumnDefinitions>
 
-        <RowDefinitions>
-            <RowDefinition Height = 1*>
-        </RowDefinitions>
-
-        <Panel GridColumn=1 GridRow=2/>
+        <Panel GridColumn=2/>
     </GridLayout>
 </Frame>
 ]]
