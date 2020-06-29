@@ -2,4 +2,6 @@
 GGML.TAG_SELF_CLOSE = {
     DImageButton = true,
     DShape = true,
+    ColumnDefinition = true,
+    RowDefinition = true,
 }

@@ -5,12 +5,16 @@ return [[
   	   Title="Ur mom the gay"
   	   Center
   	   MakePopup >
-  	<Panel id="yote" Top=29 Left=50% Width=50% Height=100% BackgroundColor=#ff0000/>
-    <Panel Width=50% Top=29 Height=100% BackgroundColor=#ff0000/>
-	<TextEntry id="testLabel" Top="50" Left="50"
-		   Height="100" Width="100" Text="@=test.property.thing"
-		   Font-Family="Roboto" Font-Size="30"
-		   Font-Decoration="italics"/>
-	<Button id="button" OnClick="@buttonClick" TextColor="#ff0000" Top="150" Left="50">Click me?</Button>
+  	<GridLayout Dock=^FILL>
+        <ColumnDefinitions>
+            <ColumnDefinition Width = 1*>
+        </ColumnDefinitions>
+
+        <RowDefinitions>
+            <RowDefinition Height = 1*>
+        </RowDefinitions>
+
+        <Panel GridColumn=1 GridRow=2/>
+    </GridLayout>
 </Frame>
 ]]

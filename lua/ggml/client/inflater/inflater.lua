@@ -40,11 +40,45 @@ function GGML.FindClassName( tag, name )
     return tag
 end
 
+function GGML.inflater.parseChildProperty( data, structure )
+    local out = {
+        name = data.tag,
+        children = {},
+        fields = table.Copy( structure.fields ),
+    }
+
+    for _, arg in pairs( data.args ) do
+        if structure.fields and structure.fields[arg.key] then
+            out.fields[arg.key] = arg.value
+        else
+            return false, "Field " .. arg.key .. " is not supported in child property " .. data.tag
+        end
+    end
+
+    for _, child in ipairs( data.children ) do
+        if not istable( child ) then
+            return false, "Strings are not supported in child properties"
+        end
+
+        if not structure.children[child.tag] then
+            return false, "Tag " .. child.tag .. " is not supported in child property " .. data.tag
+        end
+
+        local success, value = GGML.inflater.parseChildProperty( child, structure.children[child.tag] )
+
+        if not success then return false, value end
+
+        table.insert( out.children, value )
+    end
+
+    return true, out
+end
+
 function GGML.Inflate( name, xml, parent, root )
     local tag = xml.tag
     local args = xml.args
     local children = xml.children
-    local className = GGML.FindClassName( tag )
+    local className = GGML.FindClassName( tag, name )
 
     local elem
     if root then
@@ -55,7 +89,7 @@ function GGML.Inflate( name, xml, parent, root )
     end
     xml.element = elem
 
-    for i, data in ipairs( xml.args ) do
+    for i, data in ipairs( args ) do
         local rawKey, value = data.key, data.value
         local key = rawKey
         local doSet = false
@@ -94,10 +128,41 @@ function GGML.Inflate( name, xml, parent, root )
         children[1] = nil
     end
 
+    local childPropertyStructure
+
+    if elem.GetChildPropertyStructure then
+        childPropertyStructure = elem:GetChildPropertyStructure()
+    end
+
+    local childProperties = {}
+
     for k, v in ipairs( children ) do
         if not istable( v ) then
             error( "Invalid XML for GGML object \"" .. name .. "\": Text content must be singular for tag \"" .. tag .. "\"" )
         end
+
+        if childPropertyStructure then
+            local propertyData = childPropertyStructure[v.tag]
+            if propertyData then
+                local success, value = GGML.inflater.parseChildProperty( v, propertyData )
+
+                if not success then
+                    error( "Invalid XML for GGML object \"" .. name .. "\": Error in child property \""
+                        .. v.tag .. "\" of \"" .. tag .. "\" - " .. value )
+                end
+
+                table.insert( childProperties, value )
+                continue
+            end
+        end
+
         GGML.Inflate( name, v, elem, root )
+    end
+
+    if #childProperties > 0 then
+        local success, err = elem:SetChildProperties( childProperties )
+        if not success then
+            error( "Invalid XML for GGML object \"" .. name .. "\": Child property error in \"" .. tag .. "\" - " .. err )
+        end
     end
 end

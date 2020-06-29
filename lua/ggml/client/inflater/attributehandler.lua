@@ -45,7 +45,7 @@ function GGML.inflater.handleField( setter, hasGetter, getter, value, root, self
             return "Invalid color structure"
         end
     elseif prefix == "^" then
-        local v = getGlobalValue( rest )
+        local v = GGML.inflater.getGlobalValue( rest )
         if v ~= nil then
             setter( v )
         else

@@ -24,7 +24,7 @@ local function getNextArgument( s, inputLength )
 
     local quote = s[1]
     if quote ~= "\"" and quote ~= "'" then
-        local argValue = string.match( s, "^[%w_%-%%#]+" )
+        local argValue = string.match( s, "^[^%s>/]+" )
         return argName, argValue, string.sub( s, #argValue + 1 )
     end
 
@@ -121,7 +121,7 @@ local function getNextTag( s, inputLength )
     end
 end
 
-function GGML.parseXML( s, name )
+function GGML.parseXML( s )
     local stack = {{ children = {} }}
     local inputString = s
     local inputLength = #inputString
@@ -150,7 +150,7 @@ function GGML.parseXML( s, name )
                 table.insert( stack[#stack].children, tag )
             end
 
-            if GGML.TAG_SELF_CLOSE[GGML.FindClassName( tagName, name )] then
+            if GGML.TAG_SELF_CLOSE[tagName] or GGML.TAG_SELF_CLOSE["D" .. tagName] then
                 empty = true
             end
 
