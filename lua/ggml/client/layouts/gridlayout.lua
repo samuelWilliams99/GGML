@@ -123,7 +123,7 @@ function PANEL:UpdateGridPosition( panel )
         w = w + colData.w
     end
 
-    for k = gridY, gridX + gridYSpan - 1 do
+    for k = gridY, gridY + gridYSpan - 1 do
         local colData = self._rows[k]
         if not colData then break end
 
